@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { User } from '../../entities/user.entity';
+import { LogsModule } from '../../services/logger/logs.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { User } from '../../entities/user.entity';
       }),
       inject: [ConfigService],
     }),
+    LogsModule,
   ],
   controllers: [AuthController],
   providers: [AuthService],
