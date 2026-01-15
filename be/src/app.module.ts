@@ -4,9 +4,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { LogsModule } from './services/logger/logger.module';
+import { LogsModule } from './services/logger/logs.module';
 import { RequestLoggingInterceptor } from './interceptors/request-logging.interceptor';
 import { AuthModule } from './features/auth/auth.module';
+import { ContactsModule } from './features/contacts/contacts.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { AuthModule } from './features/auth/auth.module';
     }),
     LogsModule,
     AuthModule,
+    ContactsModule,
   ],
   controllers: [AppController],
   providers: [
