@@ -8,6 +8,7 @@ import { LogsModule } from './services/logger/logs.module';
 import { RequestLoggingInterceptor } from './interceptors/request-logging.interceptor';
 import { AuthModule } from './features/auth/auth.module';
 import { ContactsModule } from './features/contacts/contacts.module';
+import { CallsModule } from './features/calls/calls.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ContactsModule } from './features/contacts/contacts.module';
     LogsModule,
     AuthModule,
     ContactsModule,
+    CallsModule,
   ],
   controllers: [AppController],
   providers: [
