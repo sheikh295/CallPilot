@@ -1,36 +1,116 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CallPilot Frontend
+
+Modern, responsive frontend for the CallPilot AI calling platform built with Next.js 16 and React 19.
+
+## Features
+
+- 🎨 **Modern UI**: Sleek design with Tailwind CSS 4
+- ♾️ **Infinite Scroll**: Efficient pagination with TanStack React Query
+- 🔄 **Real-time Updates**: 5-second polling for call status changes
+- 📱 **Responsive**: Mobile-first design that works on all devices
+- 🎯 **Type-safe**: Full TypeScript coverage
+- 🚀 **Optimized**: Built with Next.js for optimal performance
+- 🎭 **Interactive**: Modals, toasts, and smooth transitions
+- 🔐 **Secure**: JWT-based authentication with protected routes
+
+## Tech Stack
+
+- **Next.js 16** - React framework with App Router
+- **React 19** - UI library
+- **TypeScript** - Type safety
+- **TanStack React Query** - Data fetching and caching
+- **Axios** - HTTP client
+- **Tailwind CSS 4** - Utility-first CSS
+- **Lucide React** - Icon library
+- **React Hot Toast** - Toast notifications
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+- Node.js 18+
+- pnpm (recommended) or npm
+- Backend API running on `http://localhost:3000`
+
+### Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Install dependencies
+pnpm install
+
+# Create environment file
+echo "NEXT_PUBLIC_API_URL=http://localhost:3000" > .env.local
+
+# Start development server
+pnpm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The app will be available at `http://localhost:3001`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Building for Production
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# Build the app
+pnpm run build
 
-## Learn More
+# Start production server
+pnpm run start
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Environment Variables
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Create a `.env.local` file:
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3000
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Note: `.env.local` is gitignored by default.
 
-## Deploy on Vercel
+## Project Structure
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+src/
+├── app/                    # Next.js App Router
+│   ├── auth/              # Authentication page
+│   ├── contacts/          # Contacts management
+│   ├── calls/             # Calls management
+│   ├── layout.tsx         # Root layout
+│   └── page.tsx           # Home/redirect page
+├── components/            # React components
+│   ├── ui/                # Reusable UI components
+│   └── layout/            # Layout components
+├── contexts/              # React contexts
+├── api/                   # API client functions
+├── lib/                   # Utilities
+└── types/                 # TypeScript types
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Key Features
+
+### Infinite Scroll
+Uses `useInfiniteQuery` from React Query with Intersection Observer for seamless pagination.
+
+### Real-time Updates
+Calls page polls the API every 5 seconds to keep call statuses up-to-date.
+
+### Form Validation
+All forms include client-side validation with clear error messages.
+
+### Responsive Design
+Mobile-first approach with hamburger menu on mobile devices.
+
+## Development
+
+```bash
+# Run development server
+pnpm run dev
+
+# Build for production
+pnpm run build
+
+# Lint code
+pnpm run lint
+```
+
+## License
+
+Proprietary - All rights reserved
