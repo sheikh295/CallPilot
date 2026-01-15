@@ -31,7 +31,7 @@ async function seed() {
 
       console.log('✅ Super-admin user created successfully');
       console.log(`📧 Email: superadmin@callpilot.com`);
-      console.log(`🔑 Password: SuperAdmin123!`);
+      console.log(`🔑 Password: SuperAdmin@123!`);
       console.log(`👤 Role: ${superAdmin.role}`);
 
       await logger.info('Super-admin user created via seed script', {

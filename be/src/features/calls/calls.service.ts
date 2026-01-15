@@ -1,9 +1,11 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
 import { Call, CallStatus } from '../../entities/call.entity';
 import { Contact } from '../../entities/contact.entity';
 import { LoggerService } from '../../services/logger/logger.service';
+import { VapiService } from '../../services/vapi/vapi.service';
 import { CreateCallDto, LaunchCallDto } from './dto/call.dto';
 
 @Injectable()
@@ -14,6 +16,8 @@ export class CallsService {
     @InjectRepository(Contact)
     private readonly contactRepository: Repository<Contact>,
     private readonly logger: LoggerService,
+    private readonly vapiService: VapiService,
+    private readonly configService: ConfigService,
   ) {}
 
   async create(createCallDto: CreateCallDto, userId: string): Promise<Call> {
@@ -144,6 +148,37 @@ export class CallsService {
     }
   }
 
+  async findByVapiCallId(vapiCallId: string): Promise<Call> {
+    try {
+      const call = await this.callRepository.findOne({
+        where: { vapiCallId },
+        relations: ['contact'],
+      });
+
+      if (!call) {
+        await this.logger.warn('Call not found by Vapi call ID', {
+          vapiCallId,
+        });
+        throw new NotFoundException(`Call not found with Vapi call ID: ${vapiCallId}`);
+      }
+
+      await this.logger.info('Call retrieved by Vapi call ID', {
+        callId: call.id,
+        vapiCallId,
+      });
+
+      return call;
+    } catch (error) {
+      if (!(error instanceof NotFoundException)) {
+        await this.logger.error('Failed to retrieve call by Vapi call ID', {
+          error: error.message,
+          vapiCallId,
+        });
+      }
+      throw error;
+    }
+  }
+
   async launch(id: string, launchCallDto: LaunchCallDto, userId: string): Promise<Call> {
     try {
       const call = await this.findOne(id, userId);
@@ -152,23 +187,46 @@ export class CallsService {
         throw new BadRequestException('Call can only be launched when in queued status');
       }
 
-      // Update status to in_progress
-      call.status = 'in_progress';
-      call.updatedAt = new Date();
-
       // Override prompt if provided
       if (launchCallDto.customPrompt) {
         call.agentPrompt = launchCallDto.customPrompt;
       }
 
+      // Get Vapi configuration from environment
+      const assistantId = this.configService.get<string>('VAPI_ASSISTANT_ID');
+      const phoneNumberId = this.configService.get<string>('VAPI_PHONE_NUMBER_ID');
+
+      if (!assistantId) {
+        throw new Error('VAPI_ASSISTANT_ID is not configured');
+      }
+
+      // Prepare assistant overrides to inject custom prompt and goals
+      const assistantOverrides: any = {};
+      if (call.agentPrompt || call.callGoals) {
+        assistantOverrides.variableValues = {
+          agentPrompt: call.agentPrompt || '',
+          callGoals: call.callGoals || '',
+        };
+      }
+
+      // Launch the call via Vapi
+      const vapiResponse = await this.vapiService.createOutboundCall({
+        assistantId,
+        customerPhoneNumber: call.contact.phoneNumber,
+        phoneNumberId: phoneNumberId || undefined,
+        assistantOverrides: Object.keys(assistantOverrides).length > 0 ? assistantOverrides : undefined,
+      });
+
+      // Update call with Vapi call ID and status
+      call.vapiCallId = vapiResponse.id;
+      call.status = 'in_progress';
+      call.updatedAt = new Date();
+
       const updatedCall = await this.callRepository.save(call);
 
-      // TODO: Integrate with Vapi to actually launch the call
-      // For now, we'll simulate the call launch
-      await this.simulateCallLaunch(updatedCall);
-
-      await this.logger.info('Call launched successfully', {
+      await this.logger.info('Call launched successfully via Vapi', {
         callId: id,
+        vapiCallId: vapiResponse.id,
         contactId: call.contactId,
         contactName: call.contact.name,
         userId,
@@ -232,33 +290,4 @@ export class CallsService {
     }
   }
 
-  // Temporary simulation method - replace with actual Vapi integration
-  private async simulateCallLaunch(call: Call): Promise<void> {
-    // Simulate call completion after a delay
-    setTimeout(async () => {
-      try {
-        await this.updateCallStatus(
-          call.id,
-          'completed',
-          'Interested - High',
-          'Agent: Hello, this is an AI assistant calling about our new product.\nContact: Hi, I\'m interested in learning more.\nAgent: Great! Let me tell you about our features...',
-          'Contact showed high interest in the product offering. They requested more information about pricing and implementation timeline.',
-          {
-            interested: true,
-            interestLevel: 'high',
-            objections: [],
-            callbackRequested: false,
-            decisionMaker: true,
-            budgetConfirmed: false,
-            timeline: 'Q1 2026',
-          }
-        );
-      } catch (error) {
-        await this.logger.error('Failed to simulate call completion', {
-          error: error.message,
-          callId: call.id,
-        });
-      }
-    }, 5000); // 5 second delay
-  }
 }

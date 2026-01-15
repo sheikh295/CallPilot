@@ -25,7 +25,21 @@ async function bootstrap() {
     .setTitle('CallPilot API')
     .setDescription('API documentation for CallPilot backend')
     .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token',
+        in: 'header',
+      },
+      'JWT-auth', // This name here is important for matching up with @ApiBearerAuth() decorators
+    )
     .addTag('auth', 'Authentication endpoints')
+    .addTag('contacts', 'Contact management endpoints')
+    .addTag('calls', 'Call management endpoints')
+    .addTag('webhooks', 'Webhook endpoints')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);

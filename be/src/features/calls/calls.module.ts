@@ -8,11 +8,13 @@ import { CallsService } from './calls.service';
 import { Call } from '../../entities/call.entity';
 import { Contact } from '../../entities/contact.entity';
 import { LogsModule } from '../../services/logger/logs.module';
+import { VapiModule } from '../../services/vapi/vapi.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Call, Contact]),
     LogsModule,
+    VapiModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({

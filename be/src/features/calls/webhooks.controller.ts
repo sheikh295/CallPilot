@@ -1,6 +1,8 @@
-import { Controller, Post, Body, Logger } from '@nestjs/common';
+import { Controller, Post, Body, Logger, Headers, UnauthorizedException, RawBodyRequest, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import type { Request } from 'express';
 import { CallsService } from '../calls/calls.service';
+import { VapiService } from '../../services/vapi/vapi.service';
 import { VapiWebhookDto } from '../calls/dto/call.dto';
 
 @ApiTags('webhooks')
@@ -8,7 +10,10 @@ import { VapiWebhookDto } from '../calls/dto/call.dto';
 export class WebhooksController {
   private readonly logger = new Logger(WebhooksController.name);
 
-  constructor(private readonly callsService: CallsService) {}
+  constructor(
+    private readonly callsService: CallsService,
+    private readonly vapiService: VapiService,
+  ) {}
 
   @Post('vapi')
   @ApiOperation({ summary: 'Handle Vapi webhook callbacks' })
@@ -20,16 +25,38 @@ export class WebhooksController {
     status: 400,
     description: 'Bad request - invalid webhook data',
   })
-  async handleVapiWebhook(@Body() webhookData: VapiWebhookDto): Promise<{ success: boolean }> {
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - invalid signature',
+  })
+  async handleVapiWebhook(
+    @Body() webhookData: VapiWebhookDto,
+    @Headers('x-vapi-signature') signature: string,
+    @Req() request: Request,
+  ): Promise<{ success: boolean }> {
     try {
       this.logger.log(`Received Vapi webhook for call ${webhookData.callId}`);
 
-      // TODO: Map Vapi callId to our internal call ID
-      // For now, we'll assume the callId in webhook matches our call ID
-      const internalCallId = webhookData.callId;
+      // Verify webhook signature for security
+      // Note: In production, you should use raw body for signature verification
+      // For now, we'll use JSON.stringify as a fallback
+      const rawBody = (request as any).rawBody || JSON.stringify(webhookData);
+
+      const isValidSignature = this.vapiService.verifyWebhookSignature(
+        rawBody,
+        signature
+      );
+
+      if (!isValidSignature) {
+        this.logger.warn(`Invalid webhook signature for call ${webhookData.callId}`);
+        throw new UnauthorizedException('Invalid webhook signature');
+      }
+
+      // Map Vapi callId to our internal call ID
+      const call = await this.callsService.findByVapiCallId(webhookData.callId);
 
       await this.callsService.updateCallStatus(
-        internalCallId,
+        call.id,
         webhookData.status,
         webhookData.outcome,
         webhookData.transcript,
@@ -37,11 +64,17 @@ export class WebhooksController {
         webhookData.structuredOutput,
       );
 
-      this.logger.log(`Successfully processed webhook for call ${webhookData.callId}`);
+      this.logger.log(`Successfully processed webhook for Vapi call ${webhookData.callId} (internal ID: ${call.id})`);
       return { success: true };
     } catch (error) {
       this.logger.error(`Failed to process Vapi webhook: ${error.message}`, error.stack);
-      // Still return 200 to acknowledge receipt, but log the error
+
+      // Re-throw UnauthorizedException to return 401 status
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+
+      // For other errors, still return 200 to acknowledge receipt, but log the error
       return { success: false };
     }
   }

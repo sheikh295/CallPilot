@@ -40,6 +40,9 @@ export class Call {
   @Column({ type: 'text', nullable: true })
   callGoals: string;
 
+  @Column({ type: 'varchar', nullable: true })
+  vapiCallId: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

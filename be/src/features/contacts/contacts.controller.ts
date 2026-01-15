@@ -26,7 +26,7 @@ import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import type { AuthenticatedRequest } from '../../guards/jwt-auth.guard';
 
 @ApiTags('contacts')
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 @UseGuards(JwtAuthGuard)
 @Controller('contacts')
 export class ContactsController {
