@@ -11,12 +11,11 @@ export class CreateContactDto {
   name: string;
 
   @ApiProperty({
-    description: 'Contact phone number (10 digits, no formatting)',
-    example: '5551234567',
+    description: 'Contact phone number in E.164 format (e.g., +13464582853) or 10-digit US format. Will be automatically normalized to E.164.',
+    example: '+13464582853',
   })
   @IsString()
   @IsNotEmpty()
-  @IsPhoneNumber('US')
   phoneNumber: string;
 }
 
@@ -31,13 +30,12 @@ export class UpdateContactDto {
   name?: string;
 
   @ApiProperty({
-    description: 'Contact phone number (10 digits, no formatting)',
-    example: '5551234567',
+    description: 'Contact phone number in E.164 format (e.g., +13464582853) or 10-digit US format. Will be automatically normalized to E.164.',
+    example: '+13464582853',
     required: false,
   })
   @IsString()
   @IsNotEmpty()
-  @IsPhoneNumber('US')
   phoneNumber?: string;
 }
 
@@ -55,8 +53,8 @@ export class ContactResponseDto {
   name: string;
 
   @ApiProperty({
-    description: 'Contact phone number',
-    example: '5551234567',
+    description: 'Contact phone number in E.164 format',
+    example: '+13464582853',
   })
   phoneNumber: string;
 

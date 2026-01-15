@@ -6,7 +6,7 @@ import { VapiService } from '../../services/vapi/vapi.service';
 import { VapiWebhookDto } from '../calls/dto/call.dto';
 
 @ApiTags('webhooks')
-@Controller('webhooks')
+@Controller({ path: 'webhooks', version: '1' })
 export class WebhooksController {
   private readonly logger = new Logger(WebhooksController.name);
 

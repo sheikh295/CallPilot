@@ -19,7 +19,7 @@ export class ContactsService {
     try {
       const contact = this.contactRepository.create({
         ...createContactDto,
-        phoneNumber: createContactDto.phoneNumber.replace(/\D/g, ''), // Clean phone number
+        phoneNumber: this.normalizePhoneNumber(createContactDto.phoneNumber),
       });
 
       const savedContact = await this.contactRepository.save(contact);
@@ -130,9 +130,9 @@ export class ContactsService {
     try {
       const contact = await this.findOne(id, userId);
 
-      // Clean phone number if provided
+      // Normalize phone number if provided
       if (updateContactDto.phoneNumber) {
-        updateContactDto.phoneNumber = updateContactDto.phoneNumber.replace(/\D/g, '');
+        updateContactDto.phoneNumber = this.normalizePhoneNumber(updateContactDto.phoneNumber);
       }
 
       Object.assign(contact, updateContactDto);
@@ -179,9 +179,9 @@ export class ContactsService {
   }
 
   async findByPhoneNumber(phoneNumber: string): Promise<Contact | null> {
-    const cleanedPhone = phoneNumber.replace(/\D/g, '');
+    const normalizedPhone = this.normalizePhoneNumber(phoneNumber);
     return this.contactRepository.findOne({
-      where: { phoneNumber: cleanedPhone },
+      where: { phoneNumber: normalizedPhone },
     });
   }
 
@@ -213,8 +213,8 @@ export class ContactsService {
           continue;
         }
 
-        // Clean phone number
-        dto.phoneNumber = dto.phoneNumber.replace(/\D/g, '');
+        // Normalize phone number
+        dto.phoneNumber = this.normalizePhoneNumber(dto.phoneNumber);
 
         // Validate
         const validationErrors = await validate(dto);
@@ -247,5 +247,36 @@ export class ContactsService {
       });
       throw error;
     }
+  }
+
+  /**
+   * Normalize phone number to E.164 format for Vapi compatibility
+   * Preserves the + prefix if present, or adds +1 for US numbers
+   */
+  private normalizePhoneNumber(phoneNumber: string): string {
+    // Remove all whitespace
+    let normalized = phoneNumber.trim();
+
+    // If it already starts with +, keep it and remove other non-digit/+ characters
+    if (normalized.startsWith('+')) {
+      // Keep the +, remove everything except digits after it
+      return '+' + normalized.substring(1).replace(/\D/g, '');
+    }
+
+    // If it doesn't start with +, remove all non-digits
+    const digitsOnly = normalized.replace(/\D/g, '');
+
+    // If it's 10 digits (US number without country code), add +1
+    if (digitsOnly.length === 10) {
+      return '+1' + digitsOnly;
+    }
+
+    // If it's 11 digits and starts with 1 (US number with country code but no +), add +
+    if (digitsOnly.length === 11 && digitsOnly.startsWith('1')) {
+      return '+' + digitsOnly;
+    }
+
+    // For any other case, just return with + prefix
+    return '+' + digitsOnly;
   }
 }

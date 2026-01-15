@@ -1,98 +1,195 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# CallPilot Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A NestJS-based backend API for CallPilot - an outbound voice AI platform that enables creating, launching, and tracking AI-powered calls to contacts.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Features
 
-## Description
+- ✅ **Authentication**: JWT-based authentication system
+- ✅ **Contact Management**: CRUD operations for contacts with search and bulk import
+- ✅ **Call Management**: Create, launch, and track outbound calls
+- ✅ **Vapi Integration**: Webhook handling for call lifecycle events
+- ✅ **Database**: PostgreSQL with TypeORM
+- ✅ **API Documentation**: Swagger/OpenAPI with Bearer token support
+- ✅ **Validation**: Comprehensive input validation with class-validator
+- ✅ **Logging**: Structured logging with Winston
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Tech Stack
 
-## Project setup
+- **Framework**: NestJS 11.x
+- **Language**: TypeScript
+- **Database**: PostgreSQL (Supabase)
+- **ORM**: TypeORM
+- **Authentication**: JWT with Passport
+- **Validation**: class-validator & class-transformer
+- **Documentation**: Swagger/OpenAPI
+- **Voice AI**: Vapi integration ready
+
+## Quick Start
+
+### Prerequisites
+- Node.js 24+
+- pnpm
+- PostgreSQL database (Supabase recommended)
+
+### Installation
 
 ```bash
-$ pnpm install
+# Install dependencies
+pnpm install
+
+# Copy environment file
+cp example.env .env
+
+# Update .env with your database URL and JWT secret
 ```
 
-## Compile and run the project
+### Environment Variables
 
-```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
+```env
+NODE_ENV=development
+PORT=3000
+DATABASE_URL=postgresql://username:password@localhost:5432/callpilot
+JWT_SECRET=your-super-secret-jwt-key
 ```
 
-## Run tests
+### Database Setup
 
 ```bash
-# unit tests
-$ pnpm run test
+# Run database migrations/seeding
+pnpm run seed
+```
 
-# e2e tests
-$ pnpm run test:e2e
+### Development
 
-# test coverage
-$ pnpm run test:cov
+```bash
+# Start development server
+pnpm run start:dev
+
+# Build for production
+pnpm run build
+
+# Start production server
+pnpm run start:prod
+```
+
+## API Documentation
+
+### Development Environment
+When running locally, Swagger UI is available at:
+```
+http://localhost:3000/api
+```
+
+### Production Environment (Vercel/Serverless)
+In production environments, Swagger UI is disabled for performance reasons. Instead, the OpenAPI JSON specification is available at:
+```
+https://your-app.vercel.app/api-json
+```
+
+You can import this JSON into tools like:
+- Postman
+- Insomnia
+- Swagger Editor
+- Other OpenAPI-compatible tools
+
+## API Endpoints
+
+### Authentication
+- `POST /v1/auth/signin` - User authentication
+
+### Contacts
+- `POST /v1/contacts` - Create contact
+- `GET /v1/contacts` - List contacts (with search & pagination)
+- `POST /v1/contacts/bulk` - Bulk import contacts (CSV)
+- `GET /v1/contacts/:id` - Get contact details
+- `PATCH /v1/contacts/:id` - Update contact
+- `DELETE /v1/contacts/:id` - Delete contact
+
+### Calls
+- `POST /v1/calls` - Create call configuration
+- `GET /v1/calls` - List calls (with search & pagination)
+- `GET /v1/calls/:id` - Get call details
+- `POST /v1/calls/:id/launch` - Launch call
+
+### Webhooks
+- `POST /webhooks/vapi` - Vapi webhook handler
+
+## Project Structure
+
+```
+src/
+├── entities/           # Database entities
+│   ├── user.entity.ts
+│   ├── contact.entity.ts
+│   ├── call.entity.ts
+│   └── log.entity.ts
+├── features/           # Feature modules
+│   ├── auth/          # Authentication
+│   ├── contacts/      # Contact management
+│   └── calls/         # Call management
+├── services/          # Shared services
+│   ├── logger/        # Logging service
+│   └── vapi/          # Vapi integration (future)
+├── guards/            # Authentication guards
+├── interceptors/      # Request interceptors
+└── main.ts           # Application entry point
 ```
 
 ## Deployment
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### Vercel (Serverless)
+The application is configured for Vercel deployment:
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+1. Connect your GitHub repository to Vercel
+2. Set environment variables in Vercel dashboard
+3. Deploy automatically on push
 
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+**Important**: Swagger UI is disabled in production for performance. Use `/api-json` endpoint instead.
+
+### Environment Variables for Production
+```env
+NODE_ENV=production
+DATABASE_URL=your-supabase-connection-string
+JWT_SECRET=your-production-jwt-secret
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## Development Guidelines
 
-## Resources
+### Code Style
+- ESLint configuration included
+- Prettier for code formatting
+- TypeScript strict mode enabled
 
-Check out a few resources that may come in handy when working with NestJS:
+### Testing
+```bash
+# Run tests
+pnpm run test
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+# Run e2e tests
+pnpm run test:e2e
 
-## Support
+# Test coverage
+pnpm run test:cov
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### Database Migrations
+Currently using TypeORM synchronization. For production, consider using proper migrations:
 
-## Stay in touch
+```bash
+# Generate migration
+npm run typeorm:generate-migration -- --name=YourMigrationName
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+# Run migrations
+npm run typeorm:run-migrations
+```
+
+## Contributing
+
+1. Follow the existing code style
+2. Add tests for new features
+3. Update documentation
+4. Ensure all tests pass
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+This project is part of the CallPilot assessment.
