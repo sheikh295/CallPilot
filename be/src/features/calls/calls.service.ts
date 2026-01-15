@@ -290,4 +290,30 @@ export class CallsService {
     }
   }
 
+  async remove(id: string, userId: string): Promise<void> {
+    try {
+      const call = await this.findOne(id, userId);
+
+      // Only allow deletion of queued calls
+      if (call.status !== 'queued') {
+        throw new BadRequestException('Only queued calls can be deleted');
+      }
+
+      await this.callRepository.remove(call);
+
+      await this.logger.info('Call deleted successfully', {
+        callId: id,
+        userId,
+        contactId: call.contactId,
+      });
+    } catch (error) {
+      await this.logger.error('Failed to delete call', {
+        error: error.message,
+        callId: id,
+        userId,
+      });
+      throw error;
+    }
+  }
+
 }
