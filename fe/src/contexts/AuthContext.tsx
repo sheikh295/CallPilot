@@ -26,12 +26,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    // Check for stored user on mount
-    const storedUser = localStorage.getItem('user');
-    const storedToken = localStorage.getItem('accessToken');
-    
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
+    // Check for stored user on mount (client-side only)
+    if (typeof window !== 'undefined') {
+      const storedUser = localStorage.getItem('user');
+      const storedToken = localStorage.getItem('accessToken');
+      
+      if (storedUser && storedToken) {
+        setUser(JSON.parse(storedUser));
+      }
     }
     setIsLoading(false);
   }, []);
@@ -39,8 +41,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = async (data: SignInDto) => {
     try {
       const response = await authApi.signIn(data);
-      localStorage.setItem('accessToken', response.accessToken);
-      localStorage.setItem('user', JSON.stringify(response.user));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('accessToken', response.accessToken);
+        localStorage.setItem('user', JSON.stringify(response.user));
+      }
       setUser(response.user);
       router.push('/contacts');
     } catch (error) {
@@ -49,8 +53,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('user');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('user');
+    }
     setUser(null);
     router.push('/auth');
   };

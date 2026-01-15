@@ -58,3 +58,12 @@ export function formatRelativeTime(date: string | Date): string {
   
   return formatDate(date);
 }
+
+export function validatePhoneNumber(phoneNumber: string): boolean {
+  // Basic phone number validation - accepts digits, spaces, dashes, parentheses, and plus sign
+  return /^\+?[\d\s\-\(\)]+$/.test(phoneNumber);
+}
+
+export function validateEmail(email: string): boolean {
+  return /\S+@\S+\.\S+/.test(email);
+}

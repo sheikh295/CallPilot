@@ -11,7 +11,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Plus, Search, Upload, Phone, Edit, Trash2, X } from 'lucide-react';
 import { Contact, CreateContactDto, UpdateContactDto } from '@/types';
 import toast from 'react-hot-toast';
-import { formatRelativeTime } from '@/lib/utils';
+import { formatRelativeTime, validatePhoneNumber } from '@/lib/utils';
 
 export default function ContactsPage() {
   const queryClient = useQueryClient();
