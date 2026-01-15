@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/Textarea';
 import { Modal } from '@/components/ui/Modal';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { Plus, Search, Phone, X, Play, Eye, Sparkles } from 'lucide-react';
+import { Plus, Search, Phone, X, Play, Eye, Sparkles, Trash2 } from 'lucide-react';
 import { Call, CreateCallDto } from '@/types';
 import toast from 'react-hot-toast';
 import { formatRelativeTime, formatDate } from '@/lib/utils';
@@ -82,6 +82,18 @@ export default function CallsPage() {
     },
   });
 
+  // Delete call mutation
+  const deleteMutation = useMutation({
+    mutationFn: callsApi.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['calls'] });
+      toast.success('Call deleted successfully');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Failed to delete call');
+    },
+  });
+
   const handleLaunch = (call: Call) => {
     if (call.status !== 'queued') {
       toast.error('Only queued calls can be launched');
@@ -89,6 +101,16 @@ export default function CallsPage() {
     }
     if (window.confirm(`Launch call to ${call.contact.name}?`)) {
       launchMutation.mutate(call.id);
+    }
+  };
+
+  const handleDelete = (call: Call) => {
+    if (call.status !== 'queued') {
+      toast.error('Only queued calls can be deleted');
+      return;
+    }
+    if (window.confirm(`Are you sure you want to delete this call to ${call.contact.name}?`)) {
+      deleteMutation.mutate(call.id);
     }
   };
 
@@ -218,15 +240,26 @@ export default function CallsPage() {
                   {/* Actions */}
                   <div className="flex items-center gap-2">
                     {call.status === 'queued' && (
-                      <Button
-                        size="sm"
-                        variant="primary"
-                        onClick={() => handleLaunch(call)}
-                        isLoading={launchMutation.isPending}
-                      >
-                        <Play className="h-4 w-4 mr-1" />
-                        Launch
-                      </Button>
+                      <>
+                        <Button
+                          size="sm"
+                          variant="primary"
+                          onClick={() => handleLaunch(call)}
+                          isLoading={launchMutation.isPending}
+                        >
+                          <Play className="h-4 w-4 mr-1" />
+                          Launch
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="danger"
+                          onClick={() => handleDelete(call)}
+                          isLoading={deleteMutation.isPending}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Delete
+                        </Button>
+                      </>
                     )}
                     <Button
                       size="sm"

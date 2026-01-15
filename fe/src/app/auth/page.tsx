@@ -111,19 +111,6 @@ export default function AuthPage() {
               Sign In
             </Button>
           </form>
-
-          {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-            <p className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-2">
-              Demo Credentials:
-            </p>
-            <p className="text-xs text-blue-700 dark:text-blue-400">
-              Email: demo@callpilot.com
-            </p>
-            <p className="text-xs text-blue-700 dark:text-blue-400">
-              Password: demo123
-            </p>
-          </div>
         </div>
 
         {/* Footer */}

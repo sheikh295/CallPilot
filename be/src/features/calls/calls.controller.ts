@@ -4,6 +4,7 @@ import {
   Post,
   Body,
   Param,
+  Delete,
   Query,
   UseGuards,
   Request,
@@ -220,5 +221,32 @@ export class CallsController {
       createdAt: callWithContact.createdAt,
       updatedAt: callWithContact.updatedAt,
     };
+  }
+
+  @Delete(':id')
+  @Version('1')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete a call' })
+  @ApiResponse({
+    status: 204,
+    description: 'Call deleted successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - can only delete queued calls',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Call not found',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+  })
+  async remove(
+    @Param('id') id: string,
+    @Request() req: AuthenticatedRequest,
+  ): Promise<void> {
+    await this.callsService.remove(id, req.user.sub);
   }
 }

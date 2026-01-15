@@ -33,4 +33,8 @@ export const callsApi = {
     const response = await apiClient.post<Call>(`/v1/calls/${id}/launch`, data || {});
     return response.data;
   },
+
+  delete: async (id: string): Promise<void> => {
+    await apiClient.delete(`/v1/calls/${id}`);
+  },
 };
