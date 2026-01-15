@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as crypto from 'crypto';
 
 export interface VapiCallOptions {
   assistantId: string;
@@ -113,43 +112,34 @@ export class VapiService {
   }
 
   /**
-   * Verify webhook signature for security using HMAC-SHA256
-   * @param payload - Raw webhook payload as string
-   * @param signature - Signature from webhook headers (e.g., x-vapi-signature)
-   * @returns true if signature is valid, false otherwise
+   * Verify webhook API key for security
+   * @param apiKey - API key from webhook headers (e.g., x-api-key)
+   * @returns true if API key is valid, false otherwise
    */
-  verifyWebhookSignature(payload: string, signature: string): boolean {
+  verifyWebhookApiKey(apiKey: string): boolean {
     try {
-      const webhookSecret = this.configService.get<string>('VAPI_WEBHOOK_SECRET');
+      const webhookApiKey = this.configService.get<string>('VAPI_WEBHOOK_API_KEY');
 
-      if (!webhookSecret) {
-        this.logger.warn('VAPI_WEBHOOK_SECRET not configured. Webhook verification disabled.');
-        return true; // Allow webhooks in development if secret not configured
+      if (!webhookApiKey) {
+        this.logger.warn('VAPI_WEBHOOK_API_KEY not configured. Webhook verification disabled.');
+        return true; // Allow webhooks in development if API key not configured
       }
 
-      if (!signature) {
-        this.logger.warn('No signature provided in webhook request');
+      if (!apiKey) {
+        this.logger.warn('No API key provided in webhook request');
         return false;
       }
 
-      // Generate HMAC signature using SHA256
-      const hmac = crypto.createHmac('sha256', webhookSecret);
-      hmac.update(payload);
-      const expectedSignature = hmac.digest('hex');
-
-      // Use timing-safe comparison to prevent timing attacks
-      const isValid = crypto.timingSafeEqual(
-        Buffer.from(signature),
-        Buffer.from(expectedSignature)
-      );
+      // Simple string comparison
+      const isValid = apiKey === webhookApiKey;
 
       if (!isValid) {
-        this.logger.warn('Webhook signature verification failed');
+        this.logger.warn('Webhook API key verification failed');
       }
 
       return isValid;
     } catch (error) {
-      this.logger.error(`Error verifying webhook signature: ${error.message}`, error.stack);
+      this.logger.error(`Error verifying webhook API key: ${error.message}`, error.stack);
       return false;
     }
   }

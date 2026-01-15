@@ -1,6 +1,5 @@
-import { Controller, Post, Body, Logger, Headers, UnauthorizedException, RawBodyRequest, Req } from '@nestjs/common';
+import { Controller, Post, Body, Logger, Headers, UnauthorizedException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import type { Request } from 'express';
 import { CallsService } from '../calls/calls.service';
 import { VapiService } from '../../services/vapi/vapi.service';
 import { VapiWebhookDto } from '../calls/dto/call.dto';
@@ -27,29 +26,21 @@ export class WebhooksController {
   })
   @ApiResponse({
     status: 401,
-    description: 'Unauthorized - invalid signature',
+    description: 'Unauthorized - invalid API key',
   })
   async handleVapiWebhook(
     @Body() webhookData: VapiWebhookDto,
-    @Headers('x-vapi-signature') signature: string,
-    @Req() request: Request,
+    @Headers('x-api-key') apiKey: string,
   ): Promise<{ success: boolean }> {
     try {
       this.logger.log(`Received Vapi webhook for call ${webhookData.callId}`);
 
-      // Verify webhook signature for security
-      // Note: In production, you should use raw body for signature verification
-      // For now, we'll use JSON.stringify as a fallback
-      const rawBody = (request as any).rawBody || JSON.stringify(webhookData);
+      // Verify API key for security
+      const isValidApiKey = this.vapiService.verifyWebhookApiKey(apiKey);
 
-      const isValidSignature = this.vapiService.verifyWebhookSignature(
-        rawBody,
-        signature
-      );
-
-      if (!isValidSignature) {
-        this.logger.warn(`Invalid webhook signature for call ${webhookData.callId}`);
-        throw new UnauthorizedException('Invalid webhook signature');
+      if (!isValidApiKey) {
+        this.logger.warn(`Invalid API key for webhook call ${webhookData.callId}`);
+        throw new UnauthorizedException('Invalid API key');
       }
 
       // Map Vapi callId to our internal call ID
