@@ -4,8 +4,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { LogsModule } from './services/logger/logs.module';
+import { LogsModule } from './services/logger/logger.module';
 import { RequestLoggingInterceptor } from './interceptors/request-logging.interceptor';
+import { AuthModule } from './features/auth/auth.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { RequestLoggingInterceptor } from './interceptors/request-logging.interc
       inject: [ConfigService],
     }),
     LogsModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [

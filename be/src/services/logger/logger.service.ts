@@ -2,7 +2,7 @@ import { Injectable, Logger, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as winston from 'winston';
-import { Log, LogLevel, LogType } from './log.entity';
+import { Log, LogLevel, LogType } from '../../entities/log.entity';
 
 export interface LogContext {
   userId?: string;
