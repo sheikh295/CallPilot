@@ -45,26 +45,43 @@ export class ContactsService {
     userId: string,
     page: number = 1,
     limit: number = 10,
+    search?: string,
   ): Promise<{ contacts: Contact[]; total: number; page: number; limit: number }> {
     try {
-      const [contacts, total] = await this.contactRepository.findAndCount({
-        order: { createdAt: 'DESC' },
-        skip: (page - 1) * limit,
-        take: limit,
-      });
+      // Cap the limit at 100
+      const maxLimit = 100;
+      const actualLimit = Math.min(limit, maxLimit);
+
+      const queryBuilder = this.contactRepository.createQueryBuilder('contact');
+
+      // Add search functionality
+      if (search && search.trim()) {
+        const searchTerm = `%${search.trim()}%`;
+        queryBuilder.where(
+          '(contact.name ILIKE :search OR contact.phoneNumber ILIKE :search)',
+          { search: searchTerm }
+        );
+      }
+
+      const [contacts, total] = await queryBuilder
+        .orderBy('contact.createdAt', 'DESC')
+        .skip((page - 1) * actualLimit)
+        .take(actualLimit)
+        .getManyAndCount();
 
       await this.logger.info('Contacts retrieved successfully', {
         userId,
         totalContacts: total,
         page,
-        limit,
+        limit: actualLimit,
+        search: search || null,
       });
 
       return {
         contacts,
         total,
         page,
-        limit,
+        limit: actualLimit,
       };
     } catch (error) {
       await this.logger.error('Failed to retrieve contacts', {
@@ -72,6 +89,7 @@ export class ContactsService {
         userId,
         page,
         limit,
+        search,
       });
       throw error;
     }

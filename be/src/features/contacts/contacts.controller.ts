@@ -110,9 +110,10 @@ export class ContactsController {
 
   @Get()
   @Version('1')
-  @ApiOperation({ summary: 'Get all contacts with pagination' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiOperation({ summary: 'Get all contacts with pagination and search' })
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 10, max: 100)' })
+  @ApiQuery({ name: 'search', required: false, type: String, description: 'Search term for name or phone number' })
   @ApiResponse({
     status: 200,
     description: 'Contacts retrieved successfully',
@@ -125,9 +126,10 @@ export class ContactsController {
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Query('search') search: string,
     @Request() req: AuthenticatedRequest,
   ): Promise<ContactsListResponseDto> {
-    const result = await this.contactsService.findAll(req.user.sub, page, limit);
+    const result = await this.contactsService.findAll(req.user.sub, page, limit, search);
 
     return {
       contacts: result.contacts.map(contact => ({

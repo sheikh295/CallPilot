@@ -6,10 +6,11 @@ The Contacts feature provides a complete CRUD API for managing contact informati
 
 - ✅ Create, read, update, delete contacts
 - ✅ Bulk insert contacts from CSV file
+- ✅ Search contacts by name or phone number
 - ✅ Phone number validation and formatting
 - ✅ JWT authentication protection
 - ✅ Comprehensive request/response logging
-- ✅ Pagination support
+- ✅ Pagination support with maximum limit (100 per page)
 - ✅ Swagger API documentation
 - ✅ Input validation with class-validator
 
@@ -85,9 +86,14 @@ Jane Smith,5559876543
 
 #### 3. Get All Contacts
 ```http
-GET /v1/contacts?page=1&limit=10
+GET /v1/contacts?page=1&limit=10&search=john
 Authorization: Bearer <token>
 ```
+
+**Query Parameters:**
+- `page` (optional): Page number, default 1
+- `limit` (optional): Items per page, default 10, maximum 100
+- `search` (optional): Search term for filtering by name or phone number
 
 **Response (200):**
 ```json
@@ -218,7 +224,6 @@ const response = await fetch('/v1/contacts?page=1&limit=20', {
 ## Future Enhancements
 
 - Bulk operations
-- Contact search and filtering
 - Contact groups/categories
 - Duplicate detection
 - Contact verification
