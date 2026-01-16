@@ -209,8 +209,8 @@ export class CallsService {
       const assistantOverrides: any = {};
       if (call.agentPrompt || call.callGoals) {
         assistantOverrides.variableValues = {
-          agentPrompt: call.agentPrompt || '',
-          callGoals: call.callGoals || '',
+          agentPrompt: call.agentPrompt || 'No specific instructions for this call.',
+          callGoals: call.callGoals || 'Follow standard procedures.',
         };
       }
 
@@ -235,6 +235,8 @@ export class CallsService {
         contactId: call.contactId,
         contactName: call.contact.name,
         userId,
+        hasCustomPrompt: !!call.agentPrompt,
+        hasCallGoals: !!call.callGoals,
       });
 
       return updatedCall;

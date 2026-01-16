@@ -11,10 +11,11 @@ import { Textarea } from '@/components/ui/Textarea';
 import { Modal } from '@/components/ui/Modal';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { Plus, Search, Phone, X, Play, Eye, Sparkles, Trash2 } from 'lucide-react';
+import { Plus, Search, Phone, X, Play, Eye, Sparkles, Trash2, Target } from 'lucide-react';
 import { Call, CreateCallDto } from '@/types';
 import toast from 'react-hot-toast';
 import { formatRelativeTime, formatDate } from '@/lib/utils';
+import { DEFAULT_AGENT_PROMPT, DEFAULT_CALL_GOALS, CALL_GOALS_TEMPLATES } from '@/lib/prompt-templates';
 
 export default function CallsPage() {
   const queryClient = useQueryClient();
@@ -311,7 +312,20 @@ function CreateCallModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
   const [contactId, setContactId] = useState('');
   const [agentPrompt, setAgentPrompt] = useState('');
   const [callGoals, setCallGoals] = useState('');
+  const [showGoalsMenu, setShowGoalsMenu] = useState(false);
   const [errors, setErrors] = useState<{ contactId?: string; agentPrompt?: string; callGoals?: string }>({});
+
+  // Close dropdown when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showGoalsMenu && !(event.target as Element).closest('.goals-menu-container')) {
+        setShowGoalsMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showGoalsMenu]);
 
   // Fetch contacts for dropdown
   const { data: contactsData } = useQuery({
@@ -336,30 +350,25 @@ function CreateCallModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
     setContactId('');
     setAgentPrompt('');
     setCallGoals('');
+    setShowGoalsMenu(false);
     setErrors({});
   };
 
   const generatePrompt = () => {
-    const prompt = `You are a friendly and professional AI assistant calling on behalf of [Company Name]. 
+    setAgentPrompt(DEFAULT_AGENT_PROMPT);
+    toast.success('Riley template loaded');
+  };
 
-Your objective is to have a natural conversation with the contact and achieve the following goals:
-- Introduce yourself and the purpose of the call
-- Build rapport and listen actively to their responses
-- Address any questions or concerns they may have
-- Collect key information about their interest and needs
-
-Important guidelines:
-- Be conversational and empathetic
-- Don't sound scripted or robotic
-- Adapt to the flow of the conversation
-- If they're not interested or unavailable, politely offer to call back later
-- Always be respectful of their time
-
-At the end of the call, provide:
-1. A brief summary of the conversation
-2. A structured JSON output with key data points collected`;
-
-    setAgentPrompt(prompt);
+  const generateCallGoals = (template?: keyof typeof CALL_GOALS_TEMPLATES) => {
+    if (template) {
+      setCallGoals(CALL_GOALS_TEMPLATES[template]);
+      setShowGoalsMenu(false);
+      toast.success('Call goals template loaded');
+    } else {
+      setCallGoals(DEFAULT_CALL_GOALS);
+      setShowGoalsMenu(false);
+      toast.success('Default call goals loaded');
+    }
   };
 
   const validateForm = () => {
@@ -448,17 +457,122 @@ At the end of the call, provide:
         </div>
 
         {/* Call Goals */}
-        <Textarea
-          label="Call Goals"
-          value={callGoals}
-          onChange={(e) => {
-            setCallGoals(e.target.value);
-            setErrors({ ...errors, callGoals: undefined });
-          }}
-          error={errors.callGoals}
-          placeholder="e.g., Determine interest level, identify objections, schedule callback if needed"
-          className="min-h-[100px]"
-        />
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Call Goals
+            </label>
+            <div className="relative goals-menu-container">
+              <button
+                type="button"
+                onClick={() => setShowGoalsMenu(!showGoalsMenu)}
+                className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1"
+              >
+                <Target className="h-4 w-4" />
+                Generate Call Goals
+              </button>
+
+              {showGoalsMenu && (
+                <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10 max-h-96 overflow-y-auto">
+                  <div className="p-2 space-y-1">
+                    <button
+                      type="button"
+                      onClick={() => generateCallGoals()}
+                      className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                    >
+                      <div className="font-medium">Default Goals</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">General purpose call goals</div>
+                    </button>
+
+                    <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+
+                    <button
+                      type="button"
+                      onClick={() => generateCallGoals('appointmentScheduling')}
+                      className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                    >
+                      <div className="font-medium">Appointment Scheduling</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Schedule new appointments</div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => generateCallGoals('appointmentReminder')}
+                      className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                    >
+                      <div className="font-medium">Appointment Reminder</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Remind about upcoming appointments</div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => generateCallGoals('testResultsFollowup')}
+                      className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                    >
+                      <div className="font-medium">Test Results Follow-up</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Discuss test results</div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => generateCallGoals('missedAppointment')}
+                      className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                    >
+                      <div className="font-medium">Missed Appointment</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Follow up on missed appointments</div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => generateCallGoals('insuranceVerification')}
+                      className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                    >
+                      <div className="font-medium">Insurance Verification</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Verify insurance information</div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => generateCallGoals('wellnessCheckIn')}
+                      className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                    >
+                      <div className="font-medium">Wellness Check-in</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Check on patient wellness</div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => generateCallGoals('medicationRefill')}
+                      className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                    >
+                      <div className="font-medium">Medication Refill</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Process medication refills</div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => generateCallGoals('newPatientWelcome')}
+                      className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                    >
+                      <div className="font-medium">New Patient Welcome</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Welcome new patients</div>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          <Textarea
+            value={callGoals}
+            onChange={(e) => {
+              setCallGoals(e.target.value);
+              setErrors({ ...errors, callGoals: undefined });
+            }}
+            error={errors.callGoals}
+            placeholder="e.g., Determine interest level, identify objections, schedule callback if needed"
+            className="min-h-[100px]"
+          />
+        </div>
 
         <div className="flex justify-end gap-2 pt-4">
           <Button variant="secondary" onClick={onClose} type="button">

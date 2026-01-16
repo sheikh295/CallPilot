@@ -94,7 +94,7 @@ export class WebhooksController {
           break;
 
         default:
-          this.logger.warn(`Unknown webhook message type: ${message.type}`);
+          this.logger.warn(`Unknown webhook message type: ${(message as any).type}`);
       }
 
       return { success: true };
